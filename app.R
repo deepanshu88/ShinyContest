@@ -48,6 +48,14 @@ countries <- c('Overall', unique(data$country))
 flags <- c('https://upload.wikimedia.org/wikipedia/commons/c/c4/Globe_icon.svg',
            unique(data$flags))
 
+js <- '
+$(document).on("shiny:connected", function(){
+  Shiny.setInputValue("activeTab", $("li>a").first().attr("data-value"));
+  $("a[data-toggle=tab]").on("show.bs.tab", function(e){
+    Shiny.setInputValue("activeTab", $(this).attr("data-value"));
+  });
+});
+'
 
 #### ==== UI ====####
 app <- shinyApp(
@@ -59,7 +67,7 @@ app <- shinyApp(
                 span(class = "logo-lg", "Suicide Analysis"),
             
               tags$li(
-                class = "dropdown", div(p("Country"), 
+                class = "dropdown", div(id="textdropdown", p("Country"), 
                 style= "padding-top: 3px; 
                   color: white; font-weight: bold; 
                   font-size: 22px; margin-right: -40px;
@@ -102,6 +110,9 @@ app <- shinyApp(
         dashboardBody(
             mystyle(),
             useShinyjs(),
+            tags$head(
+              tags$script(HTML(js))
+            ),
             tabItems(
                 tabItem(
                     tabName = "home",
@@ -137,6 +148,25 @@ app <- shinyApp(
     
     server <- function(input, output, session) {
         
+      
+      observe({
+        print(input[["activeTab"]])
+      })
+      
+      observe({
+      if(!is.null(input[["activeTab"]]) && input[["activeTab"]] != "home") {
+        hide(id = "country", anim = TRUE)
+        hide(id = "textdropdown", anim = TRUE)
+      }
+        
+        else {
+          show(id = "country", anim = TRUE)
+          show(id = "textdropdown", anim = TRUE)
+          
+        }
+        
+      })
+      
       # Header Title
       observe({
         
